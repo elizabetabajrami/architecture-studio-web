@@ -1,9 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="absolute left-0 top-0 z-50 w-full border-b border-white/[0.06] bg-black/10 backdrop-blur-md">
+    <header
+      className={`fixed left-0 top-0 z-50 w-full border-b transition-[background-color,backdrop-filter,border-color,box-shadow] duration-500 ease-out ${
+        scrolled
+          ? "border-white/10 bg-[#1a272f]/82 shadow-[0_12px_48px_-14px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+          : "border-white/[0.06] bg-black/10 backdrop-blur-md"
+      }`}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-8 md:py-6">
         {/* LOGO */}
         <Link
