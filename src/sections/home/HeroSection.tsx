@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Syne } from "next/font/google";
 
@@ -65,7 +65,12 @@ export default function HeroSection() {
             </motion.p>
 
             <motion.div variants={fadeUp} className="mt-9 md:mt-10">
-              <Button text="Shiko Portofolion" />
+              <Link
+                href="/contact"
+                className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-[#112734] shadow-[0_14px_44px_-10px_rgba(0,0,0,0.38),0_0_0_1px_rgba(255,255,255,0.08)] transition-all duration-500 ease-out hover:scale-[1.03] hover:bg-white/95 hover:shadow-[0_22px_54px_-14px_rgba(0,0,0,0.48),0_0_28px_rgba(255,255,255,0.12)] active:scale-[0.99] active:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+              >
+                Na kontaktoni
+              </Link>
             </motion.div>
           </motion.div>
 

@@ -1,6 +1,6 @@
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Reveal from "@/components/ui/Reveal";
-import Button from "@/components/ui/Button";
 
 const easeOutExpo: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -34,7 +34,12 @@ export default function ContactCTA() {
             </p>
 
             <div className="mt-8 md:mt-9">
-              <Button text="Na kontaktoni" />
+              <Link
+                href="/contact"
+                className="inline-flex rounded-full bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-[#112734] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] transition-all duration-500 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)] active:translate-y-0 active:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+              >
+                Na kontaktoni
+              </Link>
             </div>
           </div>
         </motion.div>
