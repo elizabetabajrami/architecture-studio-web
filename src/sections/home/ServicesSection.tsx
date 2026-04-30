@@ -1,11 +1,34 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { services } from "@/data/services";
+import { getServices, type Service } from "@/data/services";
 import ServiceCard from "@/components/cards/ServiceCard";
 import Reveal from "@/components/ui/Reveal";
 
 const easeOutExpo: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export default function ServicesSection() {
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+  const fetchServices = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/services", {
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+
+      console.log("SERVICES:", data);
+
+      setServices(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchServices();
+}, []);
+
   return (
     <section
       id="services"
@@ -38,7 +61,7 @@ export default function ServicesSection() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-5 lg:mt-9">
           {services.map((service, index) => (
-            <Reveal key={service.title} delay={index * 0.1}>
+            <Reveal key={service._id || service.title} delay={index * 0.1}>
               <ServiceCard
                 title={service.title}
                 description={service.description}

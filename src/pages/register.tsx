@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validate = (): boolean => {
     const next: FieldErrors = {};
@@ -58,10 +59,47 @@ export default function RegisterPage() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
-    /* UI vetëm — integrimi me backend vjen më vonë */
+
+    try {
+      setIsLoading(true);
+
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: fullName.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Regjistrimi dështoi.");
+        return;
+      }
+
+      alert(data.message || "User registered successfully");
+
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setErrors({});
+
+      window.location.href = "/login";
+    } catch (error) {
+      console.error(error);
+      alert("Nuk mund të lidhet me backend.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,6 +127,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 error={errors.fullName}
               />
+
               <AuthTextField
                 label="Email"
                 name="email"
@@ -99,6 +138,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 error={errors.email}
               />
+
               <AuthTextField
                 label="Fjalëkalimi"
                 name="password"
@@ -109,6 +149,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 error={errors.password}
               />
+
               <AuthTextField
                 label="Konfirmo fjalëkalimin"
                 name="confirmPassword"
@@ -122,9 +163,10 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
-                className="mt-2 w-full rounded-full bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-[#112734] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] transition-all duration-500 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)] active:translate-y-0 active:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+                disabled={isLoading}
+                className="mt-2 w-full rounded-full bg-white px-8 py-3.5 text-sm font-semibold tracking-wide text-[#112734] shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] transition-all duration-500 ease-out hover:-translate-y-0.5 hover:bg-white/95 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)] active:translate-y-0 active:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
               >
-                Regjistrohu
+                {isLoading ? "Duke u regjistruar..." : "Regjistrohu"}
               </button>
             </form>
 

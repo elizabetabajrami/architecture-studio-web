@@ -61,6 +61,7 @@ export default function ContactPage() {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [successMessage, setSuccessMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const setFieldValue = <K extends keyof FormState>(
     field: K,
@@ -138,14 +139,50 @@ export default function ContactPage() {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validate()) return;
 
-    setForm(initialFormState);
-    setErrors({});
-    setSuccessMessage("Kërkesa juaj u dërgua me sukses!");
+    const projectType =
+      form.projectType === "Tjetër" ? form.otherProjectType.trim() : form.projectType;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          projectType,
+          location: form.location.trim(),
+          message: form.description.trim(),
+          contactMethod: form.contactMethod,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Contact API error:", response.status, errorText);
+        throw new Error(
+          errorText || "Dërgimi i formularit nuk u realizua.",
+        );
+      }
+
+      const data = await response.json();
+      console.log("Contact API success:", data);
+      setForm(initialFormState);
+      setErrors({});
+      setSubmitError("");
+      setSuccessMessage("Kërkesa juaj u dërgua me sukses!");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Diçka shkoi gabim.";
+      setSuccessMessage("");
+      setSubmitError(message);
+    }
   };
 
   return (
@@ -434,11 +471,11 @@ export default function ContactPage() {
                         <p className="text-sm font-medium text-emerald-200/95">
                           {successMessage}
                         </p>
-                      ) : (
-                        <p className="text-sm text-white/52">
-                          Nuk kërkohet backend në këtë fazë.
+                      ) : submitError ? (
+                        <p className="text-sm font-medium text-rose-200/95">
+                          {submitError}
                         </p>
-                      )}
+                      ) : null}
                     </div>
                   </form>
                 </div>
