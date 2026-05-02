@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Syne } from "next/font/google";
+import { useForm } from "react-hook-form";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthFormCard from "@/components/auth/AuthFormCard";
@@ -11,74 +12,55 @@ const heading = Syne({
   weight: ["600", "700"],
 });
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-type FieldErrors = {
-  email?: string;
-  password?: string;
+type LoginFormValues = {
+  email: string;
+  password: string;
 };
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [submitMessage, setSubmitMessage] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>();
 
-  const validate = (): boolean => {
-    const next: FieldErrors = {};
+  const onSubmit = async ({ email, password }: LoginFormValues) => {
+    setSubmitMessage("");
 
-    if (!email.trim()) {
-      next.email = "Emaili është i detyrueshëm.";
-    } else if (!emailRegex.test(email.trim())) {
-      next.email = "Ju lutem shkruani një adresë email të vlefshme.";
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSubmitMessage(data.message || "Login dështoi");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.user.role === "admin") {
+        window.location.assign("/admin/dashboard");
+      } else {
+        window.location.assign("/");
+      }
+    } catch (error) {
+      console.error(error);
+      setSubmitMessage("Nuk mund të lidhet me backend");
     }
-
-    if (!password) {
-      next.password = "Fjalëkalimi është i detyrueshëm.";
-    } else if (password.length < 8) {
-      next.password = "Fjalëkalimi duhet të ketë të paktën 8 karaktere.";
-    }
-
-    setErrors(next);
-    return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!validate()) return;
-
-  try {
-    const response = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.trim(),
-        password,
-      }),
-    });
-
-    const data = await response.json();
-
-   if (!response.ok) {
-  alert(data.message || "Login dështoi");
-  return;
-}
-
-localStorage.setItem("token", data.token);
-localStorage.setItem("user", JSON.stringify(data.user));
-
-if (data.user.role === "admin") {
-  window.location.href = "/admin/dashboard";
-} else {
-  window.location.href = "/";
-}
-
-  } catch (error) {
-    console.error(error);
-    alert("Nuk mund të lidhet me backend");
-  }
-};
   return (
     <div className="min-h-screen bg-transparent text-white">
       <Navbar />
@@ -93,26 +75,43 @@ if (data.user.role === "admin") {
             }
             subtitle="Kyçu për të vazhduar me projektet dhe hapësirat tuaja."
           >
-            <form className="space-y-7" onSubmit={handleSubmit} noValidate>
+            <form className="space-y-7" onSubmit={handleSubmit(onSubmit)} noValidate>
+              {submitMessage ? (
+                <div className="rounded-2xl border border-rose-200/20 bg-rose-300/10 px-4 py-3 text-sm leading-6 text-rose-100">
+                  {submitMessage}
+                </div>
+              ) : null}
+
               <AuthTextField
                 label="Email"
-                name="email"
                 type="email"
                 autoComplete="email"
                 placeholder="emri@shembull.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={errors.email}
+                error={errors.email?.message}
+                {...register("email", {
+                  required: "Emaili është i detyrueshëm.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Ju lutem shkruani një adresë email të vlefshme.",
+                  },
+                  onChange: () => setSubmitMessage(""),
+                })}
               />
               <AuthTextField
                 label="Fjalëkalimi"
-                name="password"
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                error={errors.password}
+                error={errors.password?.message}
+                {...register("password", {
+                  required: "Fjalëkalimi është i detyrueshëm.",
+                  minLength: {
+                    value: 8,
+                    message:
+                      "Fjalëkalimi duhet të ketë të paktën 8 karaktere.",
+                  },
+                  onChange: () => setSubmitMessage(""),
+                })}
               />
 
               <button

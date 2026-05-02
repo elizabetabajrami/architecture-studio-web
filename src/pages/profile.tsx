@@ -276,7 +276,9 @@ export default function ProfilePage() {
                 Duke u ngarkuar profili...
               </p>
             ) : error ? (
-              <p className="mt-5 text-sm leading-6 text-rose-200/95">{error}</p>
+              <p className="mt-5 rounded-2xl border border-rose-200/20 bg-rose-300/10 px-4 py-3 text-sm leading-6 text-rose-100">
+                {error}
+              </p>
             ) : user ? (
               <>
                 {success ? (
@@ -324,7 +326,9 @@ export default function ProfilePage() {
                     </div>
 
                     {formError ? (
-                      <p className="text-sm leading-6 text-rose-200/95">{formError}</p>
+                      <p className="rounded-2xl border border-rose-200/20 bg-rose-300/10 px-4 py-3 text-sm leading-6 text-rose-100">
+                        {formError}
+                      </p>
                     ) : null}
 
                     <div className="grid gap-3 sm:grid-cols-2">

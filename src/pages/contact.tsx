@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Syne } from "next/font/google";
+import { useForm } from "react-hook-form";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -17,6 +18,7 @@ const projectTypes = [
   "Tjetër",
 ] as const;
 
+const otherProjectTypeOption = projectTypes[5];
 const contactMethods = ["Email", "Telefon", "WhatsApp"] as const;
 
 type ProjectType = (typeof projectTypes)[number];
@@ -33,8 +35,6 @@ type FormState = {
   contactMethod: ContactMethod | "";
 };
 
-type FieldErrors = Partial<Record<keyof FormState, string>>;
-
 const initialFormState: FormState = {
   fullName: "",
   email: "",
@@ -46,8 +46,6 @@ const initialFormState: FormState = {
   contactMethod: "",
 };
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const inputClassName =
   "w-full rounded-2xl border border-white/14 bg-white/[0.06] px-4 py-3.5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none transition duration-300 placeholder:text-white/38 focus:border-white/32 focus:bg-white/[0.09] focus:ring-2 focus:ring-white/12";
 
@@ -58,95 +56,41 @@ const labelClassName =
   "block text-xs font-medium uppercase tracking-[0.2em] text-white/65";
 
 export default function ContactPage() {
-  const [form, setForm] = useState<FormState>(initialFormState);
-  const [errors, setErrors] = useState<FieldErrors>({});
   const [successMessage, setSuccessMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormState>({
+    defaultValues: initialFormState,
+  });
 
-  const setFieldValue = <K extends keyof FormState>(
-    field: K,
-    value: FormState[K],
-  ) => {
-    setForm((current) => ({ ...current, [field]: value }));
+  const projectTypeValue = watch("projectType");
+  const contactMethodValue = watch("contactMethod");
+
+  const clearMessages = () => {
     setSuccessMessage("");
-
-    setErrors((current) => {
-      if (!current[field]) return current;
-      const next = { ...current };
-      delete next[field];
-      return next;
-    });
-  };
-
-  const validate = (): boolean => {
-    const nextErrors: FieldErrors = {};
-
-    if (!form.fullName.trim()) {
-      nextErrors.fullName = "Ju lutem shkruani emrin dhe mbiemrin.";
-    }
-
-    if (!form.email.trim()) {
-      nextErrors.email = "Emaili është i detyrueshëm.";
-    } else if (!emailRegex.test(form.email.trim())) {
-      nextErrors.email = "Ju lutem shkruani një email të vlefshëm.";
-    }
-
-    if (!form.phone.trim()) {
-      nextErrors.phone = "Numri i telefonit është i detyrueshëm.";
-    }
-
-    if (!form.projectType) {
-      nextErrors.projectType = "Zgjidhni llojin e projektit.";
-    }
-
-    if (form.projectType === "Tjetër" && !form.otherProjectType.trim()) {
-      nextErrors.otherProjectType =
-        "Ju lutem përshkruani llojin e projektit.";
-    }
-
-    if (!form.location.trim()) {
-      nextErrors.location = "Lokacioni i projektit është i detyrueshëm.";
-    }
-
-    if (!form.description.trim()) {
-      nextErrors.description = "Përshkrimi i projektit është i detyrueshëm.";
-    }
-
-    if (!form.contactMethod) {
-      nextErrors.contactMethod =
-        "Zgjidhni mënyrën e preferuar të kontaktit.";
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setSubmitError("");
   };
 
   const handleProjectTypeChange = (value: string) => {
     const nextValue = value as ProjectType | "";
-    setForm((current) => ({
-      ...current,
-      projectType: nextValue,
-      otherProjectType: nextValue === "Tjetër" ? current.otherProjectType : "",
-    }));
-    setSuccessMessage("");
-    setErrors((current) => {
-      const next = { ...current };
-      delete next.projectType;
-      if (nextValue !== "Tjetër") {
-        delete next.otherProjectType;
-      }
-      return next;
-    });
+    clearMessages();
+
+    if (nextValue !== otherProjectTypeOption) {
+      setValue("otherProjectType", "", { shouldValidate: true });
+    }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!validate()) return;
-
+  const onSubmit = async (form: FormState) => {
     const projectType =
-      form.projectType === "Tjetër" ? form.otherProjectType.trim() : form.projectType;
-
+      form.projectType === otherProjectTypeOption
+        ? form.otherProjectType.trim()
+        : form.projectType;
     try {
       const response = await fetch("http://localhost:5000/api/contact", {
         method: "POST",
@@ -174,8 +118,7 @@ export default function ContactPage() {
 
       const data = await response.json();
       console.log("Contact API success:", data);
-      setForm(initialFormState);
-      setErrors({});
+      reset(initialFormState);
       setSubmitError("");
       setSuccessMessage("Kërkesa juaj u dërgua me sukses!");
     } catch (error) {
@@ -229,7 +172,7 @@ export default function ContactPage() {
 
                   <form
                     className="mt-8 space-y-6"
-                    onSubmit={handleSubmit}
+                    onSubmit={handleSubmit(onSubmit)}
                     noValidate
                   >
                     <div className="grid gap-6 md:grid-cols-2">
@@ -241,10 +184,10 @@ export default function ContactPage() {
                           id="fullName"
                           type="text"
                           autoComplete="name"
-                          value={form.fullName}
-                          onChange={(event) =>
-                            setFieldValue("fullName", event.target.value)
-                          }
+                          {...register("fullName", {
+                            required: "Ju lutem shkruani emrin dhe mbiemrin.",
+                            onChange: clearMessages,
+                          })}
                           className={`${inputClassName} ${
                             errors.fullName ? errorClassName : ""
                           }`}
@@ -252,7 +195,7 @@ export default function ContactPage() {
                         />
                         {errors.fullName ? (
                           <p className="text-xs leading-relaxed text-rose-200/95">
-                            {errors.fullName}
+                            {errors.fullName.message}
                           </p>
                         ) : null}
                       </div>
@@ -266,10 +209,15 @@ export default function ContactPage() {
                           type="email"
                           autoComplete="email"
                           placeholder="emri@shembull.com"
-                          value={form.email}
-                          onChange={(event) =>
-                            setFieldValue("email", event.target.value)
-                          }
+                          {...register("email", {
+                            required: "Emaili është i detyrueshëm.",
+                            pattern: {
+                              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                              message:
+                                "Ju lutem shkruani një email të vlefshëm.",
+                            },
+                            onChange: clearMessages,
+                          })}
                           className={`${inputClassName} ${
                             errors.email ? errorClassName : ""
                           }`}
@@ -277,7 +225,7 @@ export default function ContactPage() {
                         />
                         {errors.email ? (
                           <p className="text-xs leading-relaxed text-rose-200/95">
-                            {errors.email}
+                            {errors.email.message}
                           </p>
                         ) : null}
                       </div>
@@ -293,10 +241,11 @@ export default function ContactPage() {
                           type="tel"
                           autoComplete="tel"
                           placeholder="+383"
-                          value={form.phone}
-                          onChange={(event) =>
-                            setFieldValue("phone", event.target.value)
-                          }
+                          {...register("phone", {
+                            required:
+                              "Numri i telefonit është i detyrueshëm.",
+                            onChange: clearMessages,
+                          })}
                           className={`${inputClassName} ${
                             errors.phone ? errorClassName : ""
                           }`}
@@ -304,7 +253,7 @@ export default function ContactPage() {
                         />
                         {errors.phone ? (
                           <p className="text-xs leading-relaxed text-rose-200/95">
-                            {errors.phone}
+                            {errors.phone.message}
                           </p>
                         ) : null}
                       </div>
@@ -315,10 +264,11 @@ export default function ContactPage() {
                         </label>
                         <select
                           id="projectType"
-                          value={form.projectType}
-                          onChange={(event) =>
-                            handleProjectTypeChange(event.target.value)
-                          }
+                          {...register("projectType", {
+                            required: "Zgjidhni llojin e projektit.",
+                            onChange: (event) =>
+                              handleProjectTypeChange(event.target.value),
+                          })}
                           className={`${inputClassName} appearance-none ${
                             errors.projectType ? errorClassName : ""
                           }`}
@@ -339,13 +289,13 @@ export default function ContactPage() {
                         </select>
                         {errors.projectType ? (
                           <p className="text-xs leading-relaxed text-rose-200/95">
-                            {errors.projectType}
+                            {errors.projectType.message}
                           </p>
                         ) : null}
                       </div>
                     </div>
 
-                    {form.projectType === "Tjetër" ? (
+                    {projectTypeValue === otherProjectTypeOption ? (
                       <div className="space-y-2">
                         <label
                           htmlFor="otherProjectType"
@@ -356,10 +306,13 @@ export default function ContactPage() {
                         <input
                           id="otherProjectType"
                           type="text"
-                          value={form.otherProjectType}
-                          onChange={(event) =>
-                            setFieldValue("otherProjectType", event.target.value)
-                          }
+                          {...register("otherProjectType", {
+                            required:
+                              projectTypeValue === otherProjectTypeOption
+                                ? "Ju lutem përshkruani llojin e projektit."
+                                : false,
+                            onChange: clearMessages,
+                          })}
                           className={`${inputClassName} ${
                             errors.otherProjectType ? errorClassName : ""
                           }`}
@@ -367,7 +320,7 @@ export default function ContactPage() {
                         />
                         {errors.otherProjectType ? (
                           <p className="text-xs leading-relaxed text-rose-200/95">
-                            {errors.otherProjectType}
+                            {errors.otherProjectType.message}
                           </p>
                         ) : null}
                       </div>
@@ -380,10 +333,11 @@ export default function ContactPage() {
                       <input
                         id="location"
                         type="text"
-                        value={form.location}
-                        onChange={(event) =>
-                          setFieldValue("location", event.target.value)
-                        }
+                        {...register("location", {
+                          required:
+                            "Lokacioni i projektit është i detyrueshëm.",
+                          onChange: clearMessages,
+                        })}
                         className={`${inputClassName} ${
                           errors.location ? errorClassName : ""
                         }`}
@@ -391,7 +345,7 @@ export default function ContactPage() {
                       />
                       {errors.location ? (
                         <p className="text-xs leading-relaxed text-rose-200/95">
-                          {errors.location}
+                          {errors.location.message}
                         </p>
                       ) : null}
                     </div>
@@ -404,10 +358,11 @@ export default function ContactPage() {
                         id="description"
                         rows={6}
                         placeholder="Na tregoni çfarë dëshironi të realizoni..."
-                        value={form.description}
-                        onChange={(event) =>
-                          setFieldValue("description", event.target.value)
-                        }
+                        {...register("description", {
+                          required:
+                            "Përshkrimi i projektit është i detyrueshëm.",
+                          onChange: clearMessages,
+                        })}
                         className={`${inputClassName} min-h-[164px] resize-y ${
                           errors.description ? errorClassName : ""
                         }`}
@@ -415,7 +370,7 @@ export default function ContactPage() {
                       />
                       {errors.description ? (
                         <p className="text-xs leading-relaxed text-rose-200/95">
-                          {errors.description}
+                          {errors.description.message}
                         </p>
                       ) : null}
                     </div>
@@ -426,7 +381,7 @@ export default function ContactPage() {
                       </p>
                       <div className="grid gap-3 sm:grid-cols-3">
                         {contactMethods.map((method) => {
-                          const selected = form.contactMethod === method;
+                          const selected = contactMethodValue === method;
 
                           return (
                             <label
@@ -439,15 +394,13 @@ export default function ContactPage() {
                             >
                               <input
                                 type="radio"
-                                name="contactMethod"
                                 value={method}
                                 checked={selected}
-                                onChange={(event) =>
-                                  setFieldValue(
-                                    "contactMethod",
-                                    event.target.value as ContactMethod,
-                                  )
-                                }
+                                {...register("contactMethod", {
+                                  required:
+                                    "Zgjidhni mënyrën e preferuar të kontaktit.",
+                                  onChange: clearMessages,
+                                })}
                                 className="sr-only"
                               />
                               <span className="block font-medium">{method}</span>
@@ -457,7 +410,7 @@ export default function ContactPage() {
                       </div>
                       {errors.contactMethod ? (
                         <p className="text-xs leading-relaxed text-rose-200/95">
-                          {errors.contactMethod}
+                          {errors.contactMethod.message}
                         </p>
                       ) : null}
                     </div>
@@ -471,11 +424,11 @@ export default function ContactPage() {
                       </button>
 
                       {successMessage ? (
-                        <p className="text-sm font-medium text-emerald-200/95">
+                        <p className="rounded-2xl border border-emerald-200/20 bg-emerald-300/10 px-4 py-3 text-sm font-medium text-emerald-100">
                           {successMessage}
                         </p>
                       ) : submitError ? (
-                        <p className="text-sm font-medium text-rose-200/95">
+                        <p className="rounded-2xl border border-rose-200/20 bg-rose-300/10 px-4 py-3 text-sm font-medium text-rose-100">
                           {submitError}
                         </p>
                       ) : null}

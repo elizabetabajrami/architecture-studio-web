@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Syne } from "next/font/google";
+import { useForm } from "react-hook-form";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthFormCard from "@/components/auth/AuthFormCard";
@@ -11,57 +12,35 @@ const heading = Syne({
   weight: ["600", "700"],
 });
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type RegisterFormValues = {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
-type FieldErrors = {
-  fullName?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
+type SubmitMessage = {
+  type: "success" | "error";
+  text: string;
 };
 
 export default function RegisterPage() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<SubmitMessage | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormValues>();
 
-  const validate = (): boolean => {
-    const next: FieldErrors = {};
+  const password = watch("password");
 
-    if (!fullName.trim()) {
-      next.fullName = "Emri i plotë është i detyrueshëm.";
-    } else if (fullName.trim().length < 2) {
-      next.fullName = "Ju lutem shkruani të paktën 2 karaktere.";
-    }
+  const clearSubmitMessage = () => setSubmitMessage(null);
 
-    if (!email.trim()) {
-      next.email = "Emaili është i detyrueshëm.";
-    } else if (!emailRegex.test(email.trim())) {
-      next.email = "Ju lutem shkruani një adresë email të vlefshme.";
-    }
-
-    if (!password) {
-      next.password = "Fjalëkalimi është i detyrueshëm.";
-    } else if (password.length < 8) {
-      next.password = "Fjalëkalimi duhet të ketë të paktën 8 karaktere.";
-    }
-
-    if (!confirmPassword) {
-      next.confirmPassword = "Konfirmoni fjalëkalimin.";
-    } else if (confirmPassword !== password) {
-      next.confirmPassword = "Fjalëkalimet nuk përputhen.";
-    }
-
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!validate()) return;
+  const onSubmit = async ({ fullName, email, password }: RegisterFormValues) => {
+    clearSubmitMessage();
 
     try {
       setIsLoading(true);
@@ -81,22 +60,26 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || "Regjistrimi dështoi.");
+        setSubmitMessage({
+          type: "error",
+          text: data.message || "Regjistrimi dështoi.",
+        });
         return;
       }
 
-      alert(data.message || "User registered successfully");
+      setSubmitMessage({
+        type: "success",
+        text: data.message || "User registered successfully",
+      });
+      reset();
 
-      setFullName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-      setErrors({});
-
-      window.location.href = "/login";
+      window.location.assign("/login");
     } catch (error) {
       console.error(error);
-      alert("Nuk mund të lidhet me backend.");
+      setSubmitMessage({
+        type: "error",
+        text: "Nuk mund të lidhet me backend.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -116,49 +99,80 @@ export default function RegisterPage() {
             }
             subtitle="Bashkohu me Alkos Group për një përvojë dizajni të qartë dhe të personalizuar."
           >
-            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+              {submitMessage ? (
+                <div
+                  className={`rounded-2xl border px-4 py-3 text-sm leading-6 ${
+                    submitMessage.type === "success"
+                      ? "border-emerald-200/20 bg-emerald-300/10 text-emerald-100"
+                      : "border-rose-200/20 bg-rose-300/10 text-rose-100"
+                  }`}
+                >
+                  {submitMessage.text}
+                </div>
+              ) : null}
+
               <AuthTextField
                 label="Emri i plotë"
-                name="fullName"
                 type="text"
                 autoComplete="name"
                 placeholder="Emri dhe mbiemri"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                error={errors.fullName}
+                error={errors.fullName?.message}
+                {...register("fullName", {
+                  required: "Emri i plotë është i detyrueshëm.",
+                  minLength: {
+                    value: 2,
+                    message: "Ju lutem shkruani të paktën 2 karaktere.",
+                  },
+                  onChange: clearSubmitMessage,
+                })}
               />
 
               <AuthTextField
                 label="Email"
-                name="email"
                 type="email"
                 autoComplete="email"
                 placeholder="emri@shembull.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                error={errors.email}
+                error={errors.email?.message}
+                {...register("email", {
+                  required: "Emaili është i detyrueshëm.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Ju lutem shkruani një adresë email të vlefshme.",
+                  },
+                  onChange: clearSubmitMessage,
+                })}
               />
 
               <AuthTextField
                 label="Fjalëkalimi"
-                name="password"
                 type="password"
                 autoComplete="new-password"
                 placeholder="Të paktën 8 karaktere"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                error={errors.password}
+                error={errors.password?.message}
+                {...register("password", {
+                  required: "Fjalëkalimi është i detyrueshëm.",
+                  minLength: {
+                    value: 8,
+                    message:
+                      "Fjalëkalimi duhet të ketë të paktën 8 karaktere.",
+                  },
+                  onChange: clearSubmitMessage,
+                })}
               />
 
               <AuthTextField
                 label="Konfirmo fjalëkalimin"
-                name="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 placeholder="Përsërit fjalëkalimin"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                error={errors.confirmPassword}
+                error={errors.confirmPassword?.message}
+                {...register("confirmPassword", {
+                  required: "Konfirmoni fjalëkalimin.",
+                  validate: (value) =>
+                    value === password || "Fjalëkalimet nuk përputhen.",
+                  onChange: clearSubmitMessage,
+                })}
               />
 
               <button

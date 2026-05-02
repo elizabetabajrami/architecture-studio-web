@@ -1,16 +1,12 @@
-import { useId, type InputHTMLAttributes } from "react";
+import { forwardRef, useId, type InputHTMLAttributes } from "react";
 
 type AuthTextFieldProps = {
   label: string;
   error?: string;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "className">;
 
-export default function AuthTextField({
-  label,
-  error,
-  id: idProp,
-  ...inputProps
-}: AuthTextFieldProps) {
+const AuthTextField = forwardRef<HTMLInputElement, AuthTextFieldProps>(
+  function AuthTextField({ label, error, id: idProp, ...inputProps }, ref) {
   const autoId = useId();
   const id = idProp ?? autoId;
   const errorId = `${id}-error`;
@@ -24,6 +20,7 @@ export default function AuthTextField({
         {label}
       </label>
       <input
+        ref={ref}
         id={id}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? errorId : undefined}
@@ -41,4 +38,7 @@ export default function AuthTextField({
       ) : null}
     </div>
   );
-}
+  },
+);
+
+export default AuthTextField;

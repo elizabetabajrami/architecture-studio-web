@@ -60,6 +60,11 @@ type ProjectFiles = {
   galleryFiles: File[];
 };
 
+type AdminNotice = {
+  type: "success" | "error";
+  text: string;
+};
+
 const emptyProject: Project = {
   title: "",
   category: portfolioCategories[0],
@@ -97,7 +102,7 @@ export default function AdminDashboard() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<AdminNotice | null>(null);
 
   const authHeaders = useMemo(
     () => ({
@@ -148,7 +153,7 @@ export default function AdminDashboard() {
       setMessages(Array.isArray(messageData) ? messageData : []);
     } catch (error) {
       console.error("Dashboard load failed:", error);
-      setNotice("Dashboard data could not be loaded.");
+      setNotice({ type: "error", text: "Dashboard data could not be loaded." });
     } finally {
       setLoading(false);
     }
@@ -159,10 +164,17 @@ export default function AdminDashboard() {
   }, [loadDashboardData, token]);
 
   const deleteMessage = async (id: string) => {
-    await fetch(`${API_URL}/contact/${id}`, {
+    const response = await fetch(`${API_URL}/contact/${id}`, {
       method: "DELETE",
       headers: authHeaders,
     });
+
+    if (!response.ok) {
+      setNotice({ type: "error", text: "Message could not be deleted." });
+      return;
+    }
+
+    setNotice({ type: "success", text: "Message deleted." });
     await loadDashboardData();
   };
 
@@ -175,11 +187,14 @@ export default function AdminDashboard() {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      setNotice(data?.message || "User role could not be updated.");
+      setNotice({
+        type: "error",
+        text: data?.message || "User role could not be updated.",
+      });
       return;
     }
 
-    setNotice(data?.message || "User role updated.");
+    setNotice({ type: "success", text: data?.message || "User role updated." });
     await loadDashboardData();
   };
 
@@ -193,11 +208,14 @@ export default function AdminDashboard() {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      setNotice(data?.message || "User could not be deleted.");
+      setNotice({
+        type: "error",
+        text: data?.message || "User could not be deleted.",
+      });
       return;
     }
 
-    setNotice(data?.message || "User deleted.");
+    setNotice({ type: "success", text: data?.message || "User deleted." });
     await loadDashboardData();
   };
 
@@ -229,8 +247,14 @@ export default function AdminDashboard() {
       </div>
 
       {notice ? (
-        <div className="mb-5 rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-4 text-sm text-white/72">
-          {notice}
+        <div
+          className={`mb-5 rounded-2xl border px-5 py-4 text-sm ${
+            notice.type === "success"
+              ? "border-emerald-200/20 bg-emerald-300/10 text-emerald-100"
+              : "border-rose-200/20 bg-rose-300/10 text-rose-100"
+          }`}
+        >
+          {notice.text}
         </div>
       ) : null}
 
@@ -563,7 +587,7 @@ function ProjectsPanel({
   projects: Project[];
   headers: Record<string, string>;
   reload: () => Promise<void>;
-  setNotice: (value: string) => void;
+  setNotice: (value: AdminNotice) => void;
 }) {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
@@ -610,7 +634,10 @@ function ProjectsPanel({
     }
 
     setEditingProject(null);
-    setNotice(project._id ? "Project updated." : "Project created.");
+    setNotice({
+      type: "success",
+      text: project._id ? "Project updated." : "Project created.",
+    });
     await reload();
   };
 
@@ -622,11 +649,14 @@ function ProjectsPanel({
 
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      setNotice(data?.message || "Project could not be deleted.");
+      setNotice({
+        type: "error",
+        text: data?.message || "Project could not be deleted.",
+      });
       return;
     }
 
-    setNotice("Project deleted.");
+    setNotice({ type: "success", text: "Project deleted." });
     await reload();
   };
 
@@ -662,8 +692,10 @@ function ProjectForm({
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [mainImagePreview, setMainImagePreview] = useState("");
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [formError, setFormError] = useState("");
 
   const updateField = (field: keyof Project, value: string | boolean | string[]) => {
+    setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -690,12 +722,17 @@ function ProjectForm({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setFormError("");
     setSaving(true);
     try {
       await onSubmit(form, { mainImageFile, galleryFiles });
       setForm(emptyProject);
       setMainImageFile(null);
       setGalleryFiles([]);
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "Project could not be saved.",
+      );
     } finally {
       setSaving(false);
     }
@@ -705,6 +742,12 @@ function ProjectForm({
     <section className="rounded-[28px] border border-white/12 bg-white/[0.06] p-5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)] backdrop-blur-2xl md:p-6">
       <h2 className="text-2xl font-semibold">{form._id ? "Edit project" : "Add new project"}</h2>
       <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+        {formError ? (
+          <p className="rounded-2xl border border-rose-200/20 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">
+            {formError}
+          </p>
+        ) : null}
+
         <Field label="Title" value={form.title} onChange={(value) => updateField("title", value)} required />
         <div className="grid gap-2">
           <label className={labelClass}>Category</label>
