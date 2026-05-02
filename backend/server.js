@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
@@ -20,6 +21,8 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/portfolio", require("./routes/portfolioRoutes"));
 app.use("/api/contact", require("./routes/contactRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.send("Backend is running");

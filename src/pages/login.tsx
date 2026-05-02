@@ -42,12 +42,43 @@ export default function LoginPage() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!validate()) return;
-    /* UI vetëm — integrimi me backend vjen më vonë */
-  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!validate()) return;
 
+  try {
+    const response = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email.trim(),
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+   if (!response.ok) {
+  alert(data.message || "Login dështoi");
+  return;
+}
+
+localStorage.setItem("token", data.token);
+localStorage.setItem("user", JSON.stringify(data.user));
+
+if (data.user.role === "admin") {
+  window.location.href = "/admin/dashboard";
+} else {
+  window.location.href = "/";
+}
+
+  } catch (error) {
+    console.error(error);
+    alert("Nuk mund të lidhet me backend");
+  }
+};
   return (
     <div className="min-h-screen bg-transparent text-white">
       <Navbar />

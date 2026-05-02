@@ -13,7 +13,7 @@ export default function ServiceCard({
 }: ServiceCardProps) {
   return (
     <motion.div
-      className="group relative h-full overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.05] p-6 shadow-[0_20px_60px_-18px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-colors duration-500 ease-out before:pointer-events-none before:absolute before:inset-0 before:rounded-[28px] before:bg-gradient-to-br before:from-white/[0.07] before:to-transparent before:opacity-0 before:transition-opacity before:duration-500 hover:border-white/18 hover:bg-white/[0.08] hover:shadow-[0_28px_70px_-14px_rgba(0,0,0,0.55)] hover:before:opacity-100 md:p-8"
+      className="group relative h-full overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.05] p-5 shadow-[0_20px_60px_-18px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-colors duration-500 ease-out before:pointer-events-none before:absolute before:inset-0 before:rounded-[28px] before:bg-gradient-to-br before:from-white/[0.07] before:to-transparent before:opacity-0 before:transition-opacity before:duration-500 hover:border-white/18 hover:bg-white/[0.08] hover:shadow-[0_28px_70px_-14px_rgba(0,0,0,0.55)] hover:before:opacity-100 md:p-6"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.28 }}
@@ -24,7 +24,12 @@ export default function ServiceCard({
       }}
       whileTap={{ scale: 0.992 }}
     >
-      <div className="relative mb-5 h-12 w-12 rounded-full border border-white/10 bg-white/[0.12] shadow-inner transition-all duration-500 ease-out group-hover:scale-105 group-hover:border-white/15 group-hover:bg-white/[0.16]" />
+     <div className="relative mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.12] text-lg shadow-inner transition-all duration-500 ease-out group-hover:scale-105 group-hover:border-white/15 group-hover:bg-white/[0.16]">
+  {title.includes("Dizajn") && "🛋️"}
+  {title.includes("Arkitektonike") && "🏢"}
+  {title.includes("Rendera") && "🎥"}
+  {title.includes("Renovim") && "🛠️"}
+</div>
       <h3 className="relative text-2xl font-semibold tracking-tight text-white">
         {title}
       </h3>

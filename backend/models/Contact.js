@@ -23,6 +23,9 @@ const contactSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    preferredContact: {
+      type: String,
+    },
     contactMethod: {
       type: String,
     },

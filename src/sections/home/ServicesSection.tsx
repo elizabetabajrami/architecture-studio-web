@@ -1,34 +1,33 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { getServices, type Service } from "@/data/services";
 import ServiceCard from "@/components/cards/ServiceCard";
 import Reveal from "@/components/ui/Reveal";
 
 const easeOutExpo: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
+const services = [
+  {
+    title: "Dizajn i Brendshëm",
+    description:
+      "Planifikim dhe dizajn i hapësirave të brendshme për banesa, shtëpi dhe lokale, me fokus në funksionalitet dhe estetikë.",
+  },
+  {
+    title: "Projekte Arkitektonike",
+    description:
+      "Hartim i projekteve për objekte banimi dhe hapësira komerciale, duke kombinuar formën dhe funksionin.",
+  },
+  {
+    title: "Rendera & Vizualizime 3D",
+    description:
+      "Krijim i pamjeve realiste 3D për interier dhe eksterier që ndihmojnë në paraqitjen e projektit.",
+  },
+  {
+    title: "Renovim & Riorganizim",
+    description:
+      "Transformim i hapësirave ekzistuese për një përdorim më funksional dhe modern.",
+  },
+];
+
 export default function ServicesSection() {
-  const [services, setServices] = useState<Service[]>([]);
-
-  useEffect(() => {
-  const fetchServices = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/services", {
-        cache: "no-store",
-      });
-
-      const data = await res.json();
-
-      console.log("SERVICES:", data);
-
-      setServices(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  fetchServices();
-}, []);
-
   return (
     <section
       id="services"
@@ -59,9 +58,9 @@ export default function ServicesSection() {
           </motion.h2>
         </Reveal>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 md:gap-5 lg:mt-9">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {services.map((service, index) => (
-            <Reveal key={service._id || service.title} delay={index * 0.1}>
+            <Reveal key={service.title} delay={index * 0.1}>
               <ServiceCard
                 title={service.title}
                 description={service.description}

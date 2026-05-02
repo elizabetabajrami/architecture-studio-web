@@ -31,9 +31,17 @@ router.post("/register", async (req, res) => {
 
     console.log("USER SAVED:", user); 
 
+    const safeUser = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+
     res.status(201).json({
       message: "User registered successfully",
-      user,
+      user: safeUser,
     });
 
   } catch (err) {
@@ -69,10 +77,18 @@ router.post("/login", async (req, res) => {
 
     console.log("LOGIN SUCCESS:", user.email); 
 
+    const safeUser = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+
     res.json({
       message: "Login successful",
       token,
-      user,
+      user: safeUser,
     });
 
   } catch (err) {

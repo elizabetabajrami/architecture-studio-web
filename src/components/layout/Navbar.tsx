@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 
+type User = {
+  name: string;
+  email: string;
+  role: "user" | "admin";
+};
+
 const SECTION_LINKS = [
   { id: "about" as const, href: "#about", label: "Rreth nesh" },
   { id: "services" as const, href: "#services", label: "Shërbimet" },
@@ -11,12 +17,36 @@ const SECTION_LINKS = [
   { id: "contact" as const, href: "#contact", label: "Kontakti" },
 ];
 
-const spring = { type: "spring" as const, stiffness: 420, damping: 34, mass: 0.7 };
+const spring = {
+  type: "spring" as const,
+  stiffness: 420,
+  damping: 34,
+  mass: 0.7,
+};
 
 export default function Navbar() {
   const router = useRouter();
+
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      const frame = window.requestAnimationFrame(() => setUser(parsedUser));
+
+      return () => window.cancelAnimationFrame(frame);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/";
+  };
 
   const updateActiveSection = useCallback(() => {
     if (router.pathname !== "/") {
@@ -33,12 +63,15 @@ export default function Navbar() {
     }
 
     let current: string | null = null;
+
     for (const { id } of SECTION_LINKS) {
       const el = document.getElementById(id);
       if (!el) continue;
+
       const top = el.getBoundingClientRect().top + window.scrollY;
       if (top <= probeY) current = id;
     }
+
     setActiveSection(current ?? SECTION_LINKS[0].id);
   }, [router.pathname]);
 
@@ -50,16 +83,21 @@ export default function Navbar() {
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => window.removeEventListener("scroll", onScroll);
   }, [updateActiveSection]);
 
   useEffect(() => {
-    updateActiveSection();
+    const frame = window.requestAnimationFrame(updateActiveSection);
+
+    return () => window.cancelAnimationFrame(frame);
   }, [router.pathname, router.asPath, updateActiveSection]);
 
   useEffect(() => {
     const onDone = () => updateActiveSection();
+
     router.events.on("routeChangeComplete", onDone);
+
     return () => router.events.off("routeChangeComplete", onDone);
   }, [router.events, updateActiveSection]);
 
@@ -79,15 +117,20 @@ export default function Navbar() {
         <motion.div whileHover={{ opacity: 0.92 }} whileTap={{ scale: 0.985 }}>
           <Link href="/" className="flex items-center gap-3 transition-opacity duration-300">
             <Image
-              src="/logo.jpg"
+              src="/logo.png"
               alt="Alkos Group Logo"
               width={50}
               height={50}
               className="h-12 w-12 rounded-full object-cover"
             />
+
             <div>
-              <p className="text-lg font-semibold tracking-[0.2em] text-white">ALKOS</p>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/80">Group</p>
+              <p className="text-lg font-semibold tracking-[0.2em] text-white">
+                ALKOS
+              </p>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/80">
+                Group
+              </p>
             </div>
           </Link>
         </motion.div>
@@ -121,7 +164,11 @@ export default function Navbar() {
                         ? { scale: 1.02 }
                         : { y: -1, color: "rgba(255,255,255,1)" }
                     }
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 28,
+                    }}
                   >
                     {label}
                   </motion.span>
@@ -130,32 +177,56 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* AUTH BUTTONS */}
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              scroll={false}
-              className={`relative inline-flex rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-                isLogin
-                  ? "border-white/60 bg-white/10 text-white backdrop-blur-xl"
-                  : "border-white/25 text-white/90 hover:border-white/40 hover:bg-white/10"
-              }`}
-            >
-              Login
-            </Link>
+          {/* AUTH AREA */}
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-[#112734] shadow-md">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
 
-            <Link
-              href="/register"
-              scroll={false}
-              className={`relative inline-flex rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
-                isRegister
-                  ? "bg-white/90 text-[#112734]"
-                  : "bg-white text-[#112734] hover:bg-white/90"
-              }`}
-            >
-              Register
-            </Link>
-          </div>
+              {user.role === "admin" ? (
+                <Link
+                  href="/admin/dashboard"
+                  className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-[#112734]"
+                >
+                  Dashboard
+                </Link>
+              ) : null}
+
+              <button
+                onClick={handleLogout}
+                className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-[#112734]"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link
+                href="/login"
+                scroll={false}
+                className={`relative inline-flex rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
+                  isLogin
+                    ? "border-white/60 bg-white/10 text-white backdrop-blur-xl"
+                    : "border-white/25 text-white/90 hover:border-white/40 hover:bg-white/10"
+                }`}
+              >
+                Login
+              </Link>
+
+              <Link
+                href="/register"
+                scroll={false}
+                className={`relative inline-flex rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                  isRegister
+                    ? "bg-white/90 text-[#112734]"
+                    : "bg-white text-[#112734] hover:bg-white/90"
+                }`}
+              >
+                Register
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>

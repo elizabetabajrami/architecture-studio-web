@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Contact = require("../models/Contact");
+const protectAdmin = require("../middleware/adminMiddleware");
 
 router.post("/", async (req, res) => {
   try {
@@ -11,6 +12,7 @@ router.post("/", async (req, res) => {
       projectType,
       location,
       message,
+      preferredContact,
       contactMethod,
       status,
     } = req.body;
@@ -28,6 +30,7 @@ router.post("/", async (req, res) => {
       projectType,
       location,
       message,
+      preferredContact: preferredContact || contactMethod,
       contactMethod,
       status,
     });
@@ -41,7 +44,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", protectAdmin, async (req, res) => {
   try {
     const contacts = await Contact.find().sort({ createdAt: -1 });
     res.json(contacts);
@@ -51,7 +54,7 @@ router.get("/", async (req, res) => {
 });
 
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", protectAdmin, async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
 
@@ -66,13 +69,33 @@ router.get("/:id", async (req, res) => {
 });
 
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", protectAdmin, async (req, res) => {
   try {
-    const { fullName, email, message, status } = req.body;
+    const {
+      fullName,
+      email,
+      phone,
+      projectType,
+      location,
+      message,
+      preferredContact,
+      contactMethod,
+      status,
+    } = req.body;
 
     const contact = await Contact.findByIdAndUpdate(
       req.params.id,
-      { fullName, email, message, status },
+      {
+        fullName,
+        email,
+        phone,
+        projectType,
+        location,
+        message,
+        preferredContact: preferredContact || contactMethod,
+        contactMethod,
+        status,
+      },
       { new: true }
     );
 
@@ -90,7 +113,7 @@ router.put("/:id", async (req, res) => {
 });
 
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protectAdmin, async (req, res) => {
   try {
     const contact = await Contact.findByIdAndDelete(req.params.id);
 
