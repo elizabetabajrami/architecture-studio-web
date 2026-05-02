@@ -3,13 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Reveal from "@/components/ui/Reveal";
-import { useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 import {
   allPortfolioCategoriesLabel,
   portfolioCategories,
 } from "@/data/portfolioCategories";
 
 const easeOutExpo: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const API_URL = "http://localhost:5000/api";
 
 type PortfolioItem = {
   _id: string;
@@ -24,11 +25,13 @@ export default function PortfolioPreview() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [activeCategory, setActiveCategory] = useState(allPortfolioCategoriesLabel);
   const [loading, setLoading] = useState(true);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [favoritingId, setFavoritingId] = useState("");
 
   useEffect(() => {
     const fetchPortfolio = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/portfolio", {
+        const response = await fetch(`${API_URL}/portfolio`, {
           cache: "no-store",
         });
 
@@ -43,6 +46,87 @@ export default function PortfolioPreview() {
 
     fetchPortfolio();
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const fetchFavorites = async () => {
+      try {
+        const response = await fetch(`${API_URL}/users/me/favorites`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setFavoriteIds(
+          Array.isArray(data.favorites)
+            ? data.favorites.map((item: PortfolioItem) => item._id)
+            : [],
+        );
+      } catch (error) {
+        console.error("Failed to load favorite projects:", error);
+      }
+    };
+
+    fetchFavorites();
+  }, []);
+
+  const handleFavorite = async (
+    event: MouseEvent<HTMLButtonElement>,
+    projectId: string,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const isFavorite = favoriteIds.includes(projectId);
+    setFavoritingId(projectId);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/users/me/favorites/${encodeURIComponent(projectId)}`,
+        {
+          method: isFavorite ? "DELETE" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: isFavorite ? undefined : JSON.stringify({}),
+        },
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      setFavoriteIds(
+        Array.isArray(data.favorites)
+          ? data.favorites.map((item: PortfolioItem) => item._id)
+          : [],
+      );
+    } catch (error) {
+      console.error("Failed to update favorite project:", error);
+    } finally {
+      setFavoritingId("");
+    }
+  };
 
   const filteredItems = useMemo(() => {
     if (activeCategory === allPortfolioCategoriesLabel) return items;
@@ -118,59 +202,81 @@ export default function PortfolioPreview() {
 
         {!loading && filteredItems.length > 0 && (
           <div className="mt-9 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredItems.map((item, index) => (
-              <Reveal key={item._id} delay={index * 0.04}>
-                <motion.article
-                  className="group relative h-[320px] overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] shadow-[0_24px_70px_-22px_rgba(0,0,0,0.55)] ring-1 ring-inset ring-white/[0.04] transition-colors duration-500 ease-out hover:border-white/22 hover:shadow-[0_32px_80px_-18px_rgba(0,0,0,0.6)] sm:h-[360px]"
-                  initial={{ opacity: 0, y: 22 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.28 }}
-                  transition={{
-                    duration: 0.75,
-                    delay: index * 0.06,
-                    ease: easeOutExpo,
-                  }}
-                  whileHover={{
-                    y: -5,
-                    transition: { duration: 0.32, ease: easeOutExpo },
-                  }}
-                >
-                  <Link
-                    href={`/projects/${encodeURIComponent(item._id)}`}
-                    className="block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/45"
-                    aria-label={`Shiko detajet e projektit ${item.title}`}
+            {filteredItems.map((item, index) => {
+              const isFavorite = favoriteIds.includes(item._id);
+
+              return (
+                <Reveal key={item._id} delay={index * 0.04}>
+                  <motion.article
+                    className="group relative h-[320px] overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.04] shadow-[0_24px_70px_-22px_rgba(0,0,0,0.55)] ring-1 ring-inset ring-white/[0.04] transition-colors duration-500 ease-out hover:border-white/22 hover:shadow-[0_32px_80px_-18px_rgba(0,0,0,0.6)] sm:h-[360px]"
+                    initial={{ opacity: 0, y: 22 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.28 }}
+                    transition={{
+                      duration: 0.75,
+                      delay: index * 0.06,
+                      ease: easeOutExpo,
+                    }}
+                    whileHover={{
+                      y: -5,
+                      transition: { duration: 0.32, ease: easeOutExpo },
+                    }}
                   >
-                    <img
-                      src={item.mainImage || item.imageUrl || ""}
-                      alt={item.title}
-                      className="h-full w-full object-cover transition duration-[900ms] ease-out group-hover:scale-[1.04]"
-                    />
+                    <Link
+                      href={`/projects/${encodeURIComponent(item._id)}`}
+                      className="block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/45"
+                      aria-label={`Shiko detajet e projektit ${item.title}`}
+                    >
+                      <img
+                        src={item.mainImage || item.imageUrl || ""}
+                        alt={item.title}
+                        className="h-full w-full object-cover transition duration-[900ms] ease-out group-hover:scale-[1.04]"
+                      />
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/30 to-black/10 transition-opacity duration-500 group-hover:from-black/82" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/30 to-black/10 transition-opacity duration-500 group-hover:from-black/82" />
 
-                    <div className="absolute left-5 top-5 rounded-full border border-white/20 bg-black/25 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/80 backdrop-blur-xl">
-                      {item.category}
-                    </div>
-
-                    <div className="absolute inset-x-0 bottom-0 p-6">
-                      <h3 className="text-2xl font-semibold tracking-tight text-white">
-                        {item.title}
-                      </h3>
-
-                      {item.description && (
-                        <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/68">
-                          {item.description}
-                        </p>
-                      )}
-
-                      <div className="mt-5 text-xs uppercase tracking-[0.25em] text-white/70 transition-colors duration-300 group-hover:text-white">
-                        Shiko detajet
+                      <div className="absolute left-5 top-5 rounded-full border border-white/20 bg-black/25 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/80 backdrop-blur-xl">
+                        {item.category}
                       </div>
-                    </div>
-                  </Link>
-                </motion.article>
-              </Reveal>
-            ))}
+
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <h3 className="text-2xl font-semibold tracking-tight text-white">
+                          {item.title}
+                        </h3>
+
+                        {item.description && (
+                          <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/68">
+                            {item.description}
+                          </p>
+                        )}
+
+                        <div className="mt-5 text-xs uppercase tracking-[0.25em] text-white/70 transition-colors duration-300 group-hover:text-white">
+                          Shiko detajet
+                        </div>
+                      </div>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={(event) => handleFavorite(event, item._id)}
+                      disabled={favoritingId === item._id}
+                      className={`absolute right-5 top-5 z-10 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] backdrop-blur-xl transition-all duration-300 ${
+                        isFavorite
+                          ? "border-white bg-white text-[#112734]"
+                          : "border-white/20 bg-black/25 text-white/84 hover:border-white/40 hover:bg-white/12 hover:text-white"
+                      } disabled:cursor-not-allowed disabled:opacity-65`}
+                      aria-pressed={isFavorite}
+                      aria-label={
+                        isFavorite
+                          ? `Hiq ${item.title} nga projektet e preferuara`
+                          : `Ruaj ${item.title} te projektet e preferuara`
+                      }
+                    >
+                      {isFavorite ? "SAVED" : "SAVE"}
+                    </button>
+                  </motion.article>
+                </Reveal>
+              );
+            })}
           </div>
         )}
       </div>

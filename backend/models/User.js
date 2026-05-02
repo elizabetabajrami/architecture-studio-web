@@ -18,6 +18,15 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  favorites: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Portfolio"
+      }
+    ],
+    default: []
   }
 }, { timestamps: true });
 

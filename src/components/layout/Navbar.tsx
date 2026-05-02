@@ -103,6 +103,7 @@ export default function Navbar() {
 
   const isLogin = router.pathname === "/login";
   const isRegister = router.pathname === "/register";
+  const isProfile = router.pathname === "/profile";
 
   return (
     <header
@@ -221,6 +222,17 @@ export default function Navbar() {
                 </Link>
               ) : null}
 
+              <Link
+                href="/profile"
+                className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                  isProfile
+                    ? "border-white/60 bg-white/10 text-white backdrop-blur-xl"
+                    : "border-white/25 text-white hover:border-white hover:bg-white hover:text-[#112734]"
+                }`}
+              >
+                Profile
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="rounded-full border border-white/25 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:border-white hover:bg-white hover:text-[#112734]"
@@ -329,6 +341,17 @@ export default function Navbar() {
                       Dashboard
                     </Link>
                   ) : null}
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ${
+                      isProfile
+                        ? "border-white/36 bg-white/10 text-white"
+                        : "border-white/16 text-white hover:border-white/30 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    Profile
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="rounded-2xl border border-white/16 px-4 py-3 text-left text-sm font-semibold text-white transition-all duration-300 hover:border-white/30 hover:bg-white/[0.08]"

@@ -6,6 +6,14 @@ const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
 
+const toSafeUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  createdAt: user.createdAt,
+});
+
 router.post("/register", async (req, res) => {
   try {
     console.log("REGISTER BODY:", req.body); 
@@ -32,17 +40,9 @@ router.post("/register", async (req, res) => {
 
     console.log("USER SAVED:", user); 
 
-    const safeUser = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt,
-    };
-
     res.status(201).json({
       message: "User registered successfully",
-      user: safeUser,
+      user: toSafeUser(user),
     });
 
   } catch (err) {
@@ -78,23 +78,38 @@ router.post("/login", async (req, res) => {
 
     console.log("LOGIN SUCCESS:", user.email); 
 
-    const safeUser = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt,
-    };
-
     res.json({
       message: "Login successful",
       token,
-      user: safeUser,
+      user: toSafeUser(user),
     });
 
   } catch (err) {
     console.log("LOGIN ERROR:", err.message); 
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/me", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user: toSafeUser(user) });
+  } catch (err) {
+    console.log("PROFILE ERROR:", err.message);
+    res.status(401).json({ message: "Token invalid" });
   }
 });
 
