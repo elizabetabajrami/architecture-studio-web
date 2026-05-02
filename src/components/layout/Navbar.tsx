@@ -10,8 +10,9 @@ type User = {
   role: "user" | "admin";
 };
 
+const ABOUT_LINK = { href: "/about", label: "Rreth nesh" };
+
 const SECTION_LINKS = [
-  { id: "about" as const, href: "/#about", label: "Rreth nesh" },
   { id: "services" as const, href: "/#services", label: "Shërbimet" },
   { id: "portfolio" as const, href: "/#portfolio", label: "Portofolio" },
   { id: "contact" as const, href: "/#contact", label: "Kontakti" },
@@ -58,11 +59,6 @@ export default function Navbar() {
     const navOffset = 110;
     const probeY = window.scrollY + navOffset;
 
-    if (window.scrollY < 80) {
-      setActiveSection("about");
-      return;
-    }
-
     let current: string | null = null;
 
     for (const { id } of SECTION_LINKS) {
@@ -73,7 +69,7 @@ export default function Navbar() {
       if (top <= probeY) current = id;
     }
 
-    setActiveSection(current ?? SECTION_LINKS[0].id);
+    setActiveSection(current);
   }, [router.pathname]);
 
   useEffect(() => {
@@ -140,6 +136,37 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-8 lg:flex xl:gap-10">
           <nav className="flex items-center gap-2 text-sm font-medium md:gap-3">
+            <Link
+              href={ABOUT_LINK.href}
+              className="relative inline-flex items-center justify-center rounded-full px-4 py-2.5 outline-none transition-[color,transform] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 md:px-5"
+            >
+              {router.pathname === "/about" && (
+                <motion.span
+                  layoutId="navbar-section-pill"
+                  className="absolute inset-0 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl"
+                  transition={spring}
+                />
+              )}
+
+              <motion.span
+                className={`relative z-10 tracking-tight ${
+                  router.pathname === "/about" ? "text-white" : "text-white/85"
+                }`}
+                whileHover={
+                  router.pathname === "/about"
+                    ? { scale: 1.02 }
+                    : { y: -1, color: "rgba(255,255,255,1)" }
+                }
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 28,
+                }}
+              >
+                {ABOUT_LINK.label}
+              </motion.span>
+            </Link>
+
             {SECTION_LINKS.map(({ id, href, label }) => {
               const active = router.pathname === "/" && activeSection === id;
 
@@ -259,6 +286,18 @@ export default function Navbar() {
       {menuOpen ? (
         <div className="border-t border-white/10 px-6 pb-5 pt-3 lg:hidden">
           <div className="mx-auto grid max-w-7xl gap-2 rounded-[24px] border border-white/12 bg-[#1a272f]/92 p-3 shadow-[0_20px_60px_-24px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+            <Link
+              href={ABOUT_LINK.href}
+              onClick={() => setMenuOpen(false)}
+              className={`rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-300 ${
+                router.pathname === "/about"
+                  ? "bg-white/12 text-white"
+                  : "text-white/78 hover:bg-white/[0.07] hover:text-white"
+              }`}
+            >
+              {ABOUT_LINK.label}
+            </Link>
+
             {SECTION_LINKS.map(({ id, href, label }) => {
               const active = router.pathname === "/" && activeSection === id;
 
