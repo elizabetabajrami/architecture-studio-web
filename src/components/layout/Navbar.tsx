@@ -11,10 +11,10 @@ type User = {
 };
 
 const SECTION_LINKS = [
-  { id: "about" as const, href: "#about", label: "Rreth nesh" },
-  { id: "services" as const, href: "#services", label: "Shërbimet" },
-  { id: "portfolio" as const, href: "#portfolio", label: "Portofolio" },
-  { id: "contact" as const, href: "#contact", label: "Kontakti" },
+  { id: "about" as const, href: "/#about", label: "Rreth nesh" },
+  { id: "services" as const, href: "/#services", label: "Shërbimet" },
+  { id: "portfolio" as const, href: "/#portfolio", label: "Portofolio" },
+  { id: "contact" as const, href: "/#contact", label: "Kontakti" },
 ];
 
 const spring = {
@@ -30,6 +30,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -94,7 +95,10 @@ export default function Navbar() {
   }, [router.pathname, router.asPath, updateActiveSection]);
 
   useEffect(() => {
-    const onDone = () => updateActiveSection();
+    const onDone = () => {
+      updateActiveSection();
+      setMenuOpen(false);
+    };
 
     router.events.on("routeChangeComplete", onDone);
 
@@ -112,8 +116,7 @@ export default function Navbar() {
           : "border-white/[0.06] bg-black/10 backdrop-blur-md"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-8 md:py-6">
-        {/* LOGO */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-8 md:py-5">
         <motion.div whileHover={{ opacity: 0.92 }} whileTap={{ scale: 0.985 }}>
           <Link href="/" className="flex items-center gap-3 transition-opacity duration-300">
             <Image
@@ -121,28 +124,27 @@ export default function Navbar() {
               alt="Alkos Group Logo"
               width={50}
               height={50}
-              className="h-12 w-12 rounded-full object-cover"
+              className="h-11 w-11 rounded-full object-cover md:h-12 md:w-12"
             />
 
             <div>
-              <p className="text-lg font-semibold tracking-[0.2em] text-white">
+              <p className="text-base font-semibold tracking-[0.2em] text-white md:text-lg">
                 ALKOS
               </p>
-              <p className="text-xs uppercase tracking-[0.35em] text-white/80">
+              <p className="text-[0.68rem] uppercase tracking-[0.35em] text-white/80 md:text-xs">
                 Group
               </p>
             </div>
           </Link>
         </motion.div>
 
-        <div className="hidden items-center gap-10 md:flex">
-          {/* NAV LINKS */}
+        <div className="hidden items-center gap-8 lg:flex xl:gap-10">
           <nav className="flex items-center gap-2 text-sm font-medium md:gap-3">
             {SECTION_LINKS.map(({ id, href, label }) => {
               const active = router.pathname === "/" && activeSection === id;
 
               return (
-                <a
+                <Link
                   key={id}
                   href={href}
                   className="relative inline-flex items-center justify-center rounded-full px-4 py-2.5 outline-none transition-[color,transform] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 md:px-5"
@@ -172,12 +174,11 @@ export default function Navbar() {
                   >
                     {label}
                   </motion.span>
-                </a>
+                </Link>
               );
             })}
           </nav>
 
-          {/* AUTH AREA */}
           {user ? (
             <div className="flex items-center gap-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-[#112734] shadow-md">
@@ -228,7 +229,106 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setMenuOpen((current) => !current)}
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/18 bg-white/[0.06] text-white transition-all duration-300 hover:border-white/32 hover:bg-white/[0.1] lg:hidden"
+          aria-label="Menu"
+        >
+          <span className="flex w-5 flex-col gap-1.5">
+            <span
+              className={`h-0.5 rounded-full bg-white transition-transform duration-300 ${
+                menuOpen ? "translate-y-2 rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 rounded-full bg-white transition-opacity duration-300 ${
+                menuOpen ? "opacity-0" : "opacity-100"
+              }`}
+            />
+            <span
+              className={`h-0.5 rounded-full bg-white transition-transform duration-300 ${
+                menuOpen ? "-translate-y-2 -rotate-45" : ""
+              }`}
+            />
+          </span>
+        </button>
       </div>
+
+      {menuOpen ? (
+        <div className="border-t border-white/10 px-6 pb-5 pt-3 lg:hidden">
+          <div className="mx-auto grid max-w-7xl gap-2 rounded-[24px] border border-white/12 bg-[#1a272f]/92 p-3 shadow-[0_20px_60px_-24px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+            {SECTION_LINKS.map(({ id, href, label }) => {
+              const active = router.pathname === "/" && activeSection === id;
+
+              return (
+                <Link
+                  key={id}
+                  href={href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-300 ${
+                    active
+                      ? "bg-white/12 text-white"
+                      : "text-white/78 hover:bg-white/[0.07] hover:text-white"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+
+            <div className="mt-2 grid gap-2 border-t border-white/10 pt-3">
+              {user ? (
+                <>
+                  {user.role === "admin" ? (
+                    <Link
+                      href="/admin/dashboard"
+                      onClick={() => setMenuOpen(false)}
+                      className="rounded-2xl border border-white/16 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-white/30 hover:bg-white/[0.08]"
+                    >
+                      Dashboard
+                    </Link>
+                  ) : null}
+                  <button
+                    onClick={handleLogout}
+                    className="rounded-2xl border border-white/16 px-4 py-3 text-left text-sm font-semibold text-white transition-all duration-300 hover:border-white/30 hover:bg-white/[0.08]"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    scroll={false}
+                    onClick={() => setMenuOpen(false)}
+                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ${
+                      isLogin
+                        ? "border-white/36 bg-white/10 text-white"
+                        : "border-white/16 text-white hover:border-white/30 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    scroll={false}
+                    onClick={() => setMenuOpen(false)}
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 ${
+                      isRegister
+                        ? "bg-white/90 text-[#112734]"
+                        : "bg-white text-[#112734] hover:bg-white/90"
+                    }`}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

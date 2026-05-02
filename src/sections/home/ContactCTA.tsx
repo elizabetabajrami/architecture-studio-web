@@ -24,7 +24,7 @@ export default function ContactCTA() {
               Le të punojmë bashkë
             </p>
 
-            <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight md:mt-5 md:text-5xl">
+            <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl md:mt-5 md:text-5xl">
               Gati për të formësuar hapësirën tuaj të ardhshme?
             </h2>
 

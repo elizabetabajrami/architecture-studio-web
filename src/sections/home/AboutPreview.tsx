@@ -67,7 +67,7 @@ export default function AboutPreview() {
               <p className="text-sm uppercase tracking-[0.25em] text-white/58">
                 Rreth nesh
               </p>
-              <h2 className="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight md:mt-5 md:text-5xl">
+              <h2 className="mt-4 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl md:mt-5 md:text-5xl">
                 Ne krijojmë hapësira me kuptim.
               </h2>
             </motion.div>

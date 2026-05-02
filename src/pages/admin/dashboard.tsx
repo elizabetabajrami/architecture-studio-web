@@ -2,6 +2,7 @@ import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from 
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Syne } from "next/font/google";
+import { portfolioCategories } from "@/data/portfolioCategories";
 
 const heading = Syne({
   subsets: ["latin"],
@@ -9,7 +10,6 @@ const heading = Syne({
 });
 
 const API_URL = "http://localhost:5000/api";
-const categories = ["Interier", "Arkitekturë", "Lokale", "Rendera 3D", "Renovim"];
 const tabs = ["Overview", "Users", "Messages", "Projects"] as const;
 
 type Tab = (typeof tabs)[number];
@@ -62,7 +62,7 @@ type ProjectFiles = {
 
 const emptyProject: Project = {
   title: "",
-  category: categories[0],
+  category: portfolioCategories[0],
   description: "",
   location: "",
   year: "",
@@ -713,7 +713,7 @@ function ProjectForm({
             value={form.category}
             onChange={(event) => updateField("category", event.target.value)}
           >
-            {categories.map((category) => (
+            {portfolioCategories.map((category) => (
               <option key={category} value={category} className="bg-[#1a272f]">
                 {category}
               </option>
@@ -859,7 +859,7 @@ function ProjectsTable({
           onChange={(event) => setCategoryFilter(event.target.value)}
           className={inputClass}
         >
-          {["All", ...categories].map((category) => (
+          {["All", ...portfolioCategories].map((category) => (
             <option key={category} value={category} className="bg-[#1a272f] text-white">
               {category}
             </option>

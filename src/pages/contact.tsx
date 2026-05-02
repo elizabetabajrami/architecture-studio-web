@@ -194,7 +194,10 @@ export default function ContactPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_25%,rgba(255,255,255,0.05),transparent_32%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_60%,rgba(255,255,255,0.06),transparent_38%)]" />
 
-        <section className="relative z-10 px-6 pb-16 pt-28 md:px-8 md:pb-20 md:pt-32">
+        <section
+          id="contact-form"
+          className="relative z-10 scroll-mt-24 px-6 pb-16 pt-28 md:px-8 md:pb-20 md:pt-32"
+        >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-3xl">
               <p className="text-sm uppercase tracking-[0.28em] text-white/58">

@@ -48,7 +48,7 @@ export default function ServicesSection() {
 
         <Reveal delay={0.08}>
           <motion.h2
-            className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-white md:mt-5 md:text-5xl"
+            className="mt-4 max-w-3xl text-3xl font-semibold leading-[1.1] tracking-tight text-white sm:text-4xl md:mt-5 md:text-5xl"
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.45 }}

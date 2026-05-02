@@ -51,7 +51,7 @@ export default function HeroSection() {
           >
             <motion.h1
               variants={fadeUp}
-              className={`${heroTitle.className} text-6xl font-semibold leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)] md:text-8xl lg:text-[8.5rem]`}
+              className={`${heroTitle.className} text-5xl font-semibold leading-[0.98] tracking-tight text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.35)] sm:text-6xl md:text-8xl lg:text-[8.5rem]`}
             >
               Alkos Group
             </motion.h1>
@@ -75,16 +75,20 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div
-            className="flex justify-end lg:items-end"
+            className="flex justify-center lg:items-end lg:justify-end"
             initial={{ opacity: 0, x: 44 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.16, ease: easeOutExpo }}
           >
             <motion.div
-              className="group/card w-full max-w-md overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.06] p-6 text-white shadow-[0_24px_70px_-20px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-colors duration-500 ease-out hover:border-white/18 hover:bg-white/[0.09] hover:shadow-[0_32px_80px_-18px_rgba(0,0,0,0.6)] md:p-7"
+              className="w-full max-w-md"
               whileHover={{ y: -4, transition: { duration: 0.35, ease: easeOutExpo } }}
             >
-              <div className="mb-5 h-48 overflow-hidden rounded-[22px] ring-1 ring-white/10">
+              <Link
+                href="/#portfolio"
+                className="group/card block cursor-pointer overflow-hidden rounded-[28px] border border-white/12 bg-white/[0.06] p-5 text-white shadow-[0_24px_70px_-20px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-colors duration-500 ease-out hover:border-white/18 hover:bg-white/[0.09] hover:shadow-[0_32px_80px_-18px_rgba(0,0,0,0.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40 sm:p-6 md:p-7"
+              >
+              <div className="mb-5 h-40 overflow-hidden rounded-[22px] ring-1 ring-white/10 sm:h-48">
                 <img
                   src="/bedroom.png"
                   alt="Interior Design"
@@ -92,7 +96,7 @@ export default function HeroSection() {
                 />
               </div>
 
-              <h3 className="text-3xl font-semibold tracking-tight">
+              <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
                 Shërbime Dizajni
               </h3>
 
@@ -101,14 +105,14 @@ export default function HeroSection() {
                 me estetikë të pastër, funksion dhe identitet.
               </p>
 
-              <motion.button
-                type="button"
-                className="mt-7 text-sm uppercase tracking-[0.3em] text-white/82 transition-colors duration-300 ease-out hover:text-white"
+              <motion.span
+                className="mt-7 inline-flex text-sm uppercase tracking-[0.3em] text-white/82 transition-colors duration-300 ease-out group-hover/card:text-white"
                 whileHover={{ x: 3 }}
                 transition={{ type: "spring", stiffness: 380, damping: 28 }}
               >
                 Shiko më shumë →
-              </motion.button>
+              </motion.span>
+              </Link>
             </motion.div>
           </motion.div>
         </div>
