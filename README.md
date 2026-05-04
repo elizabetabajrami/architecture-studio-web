@@ -1,52 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Alkos Group Architecture Studio
 
-## Getting Started
+## Project Overview
 
-First, run the development server:
+Alkos Group Architecture Studio is a full-stack web application built for an architecture and interior design studio. The platform allows users to explore portfolio projects, view detailed project information, save favorite projects, submit contact/project requests, and manage their profile. Admin users can manage portfolio projects, users, and contact messages through a dedicated dashboard.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Technologies Used
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
+- NextAuth
+- React Hook Form
+
+## Main Features
+
+### User Features
+
+- Register and login
+- Profile page with edit profile functionality
+- Save and remove favorite projects
+- Browse portfolio projects by category
+- View project details
+- Submit contact/project request form
+
+### Admin Features
+
+- Admin dashboard
+- View users, messages, and projects
+- Add new portfolio projects
+- Edit portfolio projects
+- Delete portfolio projects
+- View and delete contact messages
+- Role-based access control
+
+## Authentication
+
+The project uses custom JWT authentication for the main application flow, including login, register, profile, favorites, and admin dashboard protection.
+
+NextAuth is also included with a Credentials Provider to satisfy the course requirement. It uses the existing MongoDB users collection and supports user/admin role data in the session and JWT token.
+
+The system supports user and admin roles with protected routes and role-based access control.
+
+## Data Fetching
+
+The project includes multiple Next.js data fetching methods:
+
+- SSR with `getServerSideProps`
+- SSG with `getStaticProps`
+- ISR using `revalidate`
+- Dynamic project detail pages with `getStaticPaths`
 
 ## Environment Variables
 
-Create local environment files as needed and keep real secret values out of git.
+Required environment variables:
 
-```bash
+```env
 MONGODB_URI=mongodb://localhost:27017/architectureDB
+JWT_SECRET=your-jwt-secret
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-random-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+PORT=5000
 ```
 
-The project includes both the existing custom JWT authentication flow for the app and a NextAuth Credentials Provider setup for the course requirement. The current login, register, profile, favorites, and admin dashboard flows still use the custom JWT system.
+## How to Run Locally
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+MongoDB must be running locally before starting the backend.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+### Frontend
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Backend
 
-## Learn More
+```bash
+cd backend
+npm install
+node server.js
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Screenshots
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+![Home Page](./screenshots/home.png)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+![Portfolio Page](./screenshots/portfolio.png)
 
-## Deploy on Vercel
+![Project Details Page](./screenshots/project-details.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+![Profile Page](./screenshots/profile.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+![Admin Dashboard](./screenshots/admin-dashboard.png)
+
+![Contact Messages](./screenshots/contact-messages.png)
+
+## Deployment
+
+Live Demo: coming soon
+
+Deployment is planned on Vercel.
+
+## Team Members and Roles
+
+- Elizabeta Bajrami – Frontend Development, UI Design, Portfolio Pages
+- Laura Geci – Authentication, Profile, User Features
+- Vlere Shabiu – Database, Backend, Project Management Features
+- Blenda Abdullahu – Admin Panel, Contact Messages, Forms
+
+## Notes
+
+- The application includes both frontend and backend.
+- MongoDB is used as the database.
+- The backend runs locally on port 5000.
+- The frontend runs locally on port 3000.
