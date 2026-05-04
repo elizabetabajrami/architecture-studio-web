@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthFormCard from "@/components/auth/AuthFormCard";
 import AuthTextField from "@/components/auth/AuthTextField";
+import { useAuth } from "@/context/AuthContext";
 
 const heading = Syne({
   subsets: ["latin"],
@@ -18,6 +19,7 @@ type LoginFormValues = {
 };
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [submitMessage, setSubmitMessage] = useState("");
   const {
     register,
@@ -47,8 +49,7 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.user, data.token);
 
       if (data.user.role === "admin") {
         window.location.assign("/admin/dashboard");

@@ -3,17 +3,12 @@ import { Syne } from "next/font/google";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useAuth } from "@/context/AuthContext";
 
 const heading = Syne({
   subsets: ["latin"],
   weight: ["600", "700"],
 });
-
-type User = {
-  name: string;
-  email: string;
-  role: "user" | "admin";
-};
 
 type FavoriteProject = {
   _id: string;
@@ -27,7 +22,7 @@ const API_URL = "http://localhost:5000/api";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, token, setUser, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,7 +38,7 @@ export default function ProfilePage() {
 
   const fetchProfile = useCallback(async (token: string, showLoading = true) => {
     if (!token) {
-      window.location.href = "/login";
+      logout();
       return;
     }
 
@@ -59,30 +54,25 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        logout();
         return;
       }
 
       if (!response.ok) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        logout();
         return;
       }
 
       setUser(data.user);
       setFormName(data.user.name || "");
       setFormEmail(data.user.email || "");
-      localStorage.setItem("user", JSON.stringify(data.user));
     } catch (err) {
       console.error(err);
       setError("Nuk mund të ngarkohet profili.");
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, []);
+  }, [logout, setUser]);
 
   const fetchFavorites = useCallback(async (token: string) => {
     if (!token) return;
@@ -98,9 +88,7 @@ export default function ProfilePage() {
       });
 
       if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        logout();
         return;
       }
 
@@ -119,13 +107,13 @@ export default function ProfilePage() {
     } finally {
       setFavoritesLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetchProfile(token || "");
-    fetchFavorites(token || "");
-  }, [fetchFavorites, fetchProfile]);
+    const currentToken = token || localStorage.getItem("token") || "";
+    fetchProfile(currentToken);
+    fetchFavorites(currentToken);
+  }, [fetchFavorites, fetchProfile, token]);
 
   const handleEdit = () => {
     if (!user) return;
@@ -166,10 +154,10 @@ export default function ProfilePage() {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const currentToken = token || localStorage.getItem("token");
 
-    if (!token) {
-      window.location.href = "/login";
+    if (!currentToken) {
+      logout();
       return;
     }
 
@@ -180,7 +168,7 @@ export default function ProfilePage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify({ name, email }),
       });
@@ -192,7 +180,7 @@ export default function ProfilePage() {
         return;
       }
 
-      await fetchProfile(token, false);
+      await fetchProfile(currentToken, false);
       setIsEditing(false);
       setSuccess(data?.message || "Profili u përditësua me sukses.");
     } catch (err) {
@@ -204,16 +192,14 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/login";
+    logout();
   };
 
   const handleRemoveFavorite = async (projectId: string) => {
-    const token = localStorage.getItem("token");
+    const currentToken = token || localStorage.getItem("token");
 
-    if (!token) {
-      window.location.href = "/login";
+    if (!currentToken) {
+      logout();
       return;
     }
 
@@ -225,15 +211,13 @@ export default function ProfilePage() {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${currentToken}`,
           },
         }
       );
 
       if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        logout();
         return;
       }
 

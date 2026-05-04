@@ -3,12 +3,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-
-type User = {
-  name: string;
-  email: string;
-  role: "user" | "admin";
-};
+import { useAuth } from "@/context/AuthContext";
 
 const ABOUT_LINK = { href: "/about", label: "Rreth nesh" };
 
@@ -27,27 +22,15 @@ const spring = {
 
 export default function Navbar() {
   const router = useRouter();
+  const { user, logout } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      const frame = window.requestAnimationFrame(() => setUser(parsedUser));
-
-      return () => window.cancelAnimationFrame(frame);
-    }
-  }, []);
-
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/";
+    setMenuOpen(false);
+    logout();
   };
 
   const updateActiveSection = useCallback(() => {
