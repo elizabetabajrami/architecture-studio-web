@@ -1,4 +1,5 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import type { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Syne } from "next/font/google";
@@ -65,6 +66,10 @@ type AdminNotice = {
   text: string;
 };
 
+type AdminDashboardProps = {
+  initialProjects: Project[];
+};
+
 const emptyProject: Project = {
   title: "",
   category: portfolioCategories[0],
@@ -93,14 +98,39 @@ const formatDate = (value?: string) => {
   }).format(new Date(value));
 };
 
-export default function AdminDashboard() {
+export const getServerSideProps: GetServerSideProps<AdminDashboardProps> = async ({
+  res,
+}) => {
+  res.setHeader("Cache-Control", "no-store");
+
+  try {
+    const response = await fetch(`${API_URL}/portfolio`);
+    const data = await response.json();
+
+    return {
+      props: {
+        initialProjects: Array.isArray(data) ? data : [],
+      },
+    };
+  } catch {
+    return {
+      props: {
+        initialProjects: [],
+      },
+    };
+  }
+};
+
+export default function AdminDashboard({
+  initialProjects,
+}: AdminDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [token, setToken] = useState("");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<AdminNotice | null>(null);
 

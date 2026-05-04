@@ -21,15 +21,21 @@ type PortfolioItem = {
   description?: string;
 };
 
-export default function PortfolioPreview() {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
+type PortfolioPreviewProps = {
+  initialItems?: PortfolioItem[];
+};
+
+export default function PortfolioPreview({ initialItems = [] }: PortfolioPreviewProps) {
+  const [items, setItems] = useState<PortfolioItem[]>(initialItems);
   const [activeCategory, setActiveCategory] = useState(allPortfolioCategoriesLabel);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialItems.length === 0);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [favoritingId, setFavoritingId] = useState("");
 
   useEffect(() => {
     const fetchPortfolio = async () => {
+      if (initialItems.length > 0) setLoading(false);
+
       try {
         const response = await fetch(`${API_URL}/portfolio`, {
           cache: "no-store",
@@ -45,7 +51,7 @@ export default function PortfolioPreview() {
     };
 
     fetchPortfolio();
-  }, []);
+  }, [initialItems.length]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");

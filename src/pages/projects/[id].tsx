@@ -2,6 +2,7 @@ import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import Reveal from "@/components/ui/Reveal";
 import { motion } from "framer-motion";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -43,16 +44,94 @@ const formatDate = (value?: string) => {
 const cardClassName =
   "rounded-[24px] border border-white/12 bg-white/[0.05] shadow-[0_22px_64px_-28px_rgba(0,0,0,0.56)] backdrop-blur-2xl";
 
-export default function ProjectDetailsPage() {
+type ProjectDetailsPageProps = {
+  initialProject: PortfolioProject | null;
+};
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/api/portfolio");
+    const data = await response.json();
+
+    const paths = Array.isArray(data)
+      ? data
+          .filter((project: PortfolioProject) => project._id)
+          .map((project: PortfolioProject) => ({
+            params: { id: project._id },
+          }))
+      : [];
+
+    return {
+      paths,
+      fallback: "blocking",
+    };
+  } catch {
+    return {
+      paths: [],
+      fallback: "blocking",
+    };
+  }
+};
+
+export const getStaticProps: GetStaticProps<ProjectDetailsPageProps> = async ({
+  params,
+}) => {
+  const id = typeof params?.id === "string" ? params.id : "";
+
+  if (!id) {
+    return {
+      notFound: true,
+      revalidate: 60,
+    };
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/portfolio/${encodeURIComponent(id)}`,
+    );
+
+    if (response.status === 404) {
+      return {
+        notFound: true,
+        revalidate: 60,
+      };
+    }
+
+    if (!response.ok) {
+      throw new Error("Failed to load project");
+    }
+
+    const project = await response.json();
+
+    return {
+      props: {
+        initialProject: project,
+      },
+      revalidate: 60,
+    };
+  } catch {
+    return {
+      props: {
+        initialProject: null,
+      },
+      revalidate: 60,
+    };
+  }
+};
+
+export default function ProjectDetailsPage({
+  initialProject,
+}: ProjectDetailsPageProps) {
   const router = useRouter();
   const { id } = router.query;
-  const [project, setProject] = useState<PortfolioProject | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [project, setProject] = useState<PortfolioProject | null>(initialProject);
+  const [loading, setLoading] = useState(!initialProject);
   const [notFound, setNotFound] = useState(false);
   const [activeImage, setActiveImage] = useState("");
 
   useEffect(() => {
     if (!router.isReady || typeof id !== "string") return;
+    if (initialProject?._id === id) return;
 
     const fetchProject = async () => {
       setLoading(true);
@@ -86,7 +165,7 @@ export default function ProjectDetailsPage() {
     };
 
     fetchProject();
-  }, [id, router.isReady]);
+  }, [id, initialProject?._id, router.isReady]);
 
   const heroImage = project?.mainImage || project?.imageUrl || "";
 
