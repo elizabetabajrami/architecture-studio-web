@@ -157,21 +157,56 @@ export default function AdminDashboard({
   );
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "null");
+    let isActive = true;
 
-    if (!savedToken || !user) {
-      router.replace("/login");
-      return;
-    }
+    const verifyAdmin = async () => {
+      const savedToken = localStorage.getItem("token");
 
-    if (user.role !== "admin") {
-      router.replace("/");
-      return;
-    }
+      if (!savedToken) {
+        router.replace("/login");
+        return;
+      }
 
-    setToken(savedToken);
-    setAdmin(user);
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${savedToken}`,
+          },
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          router.replace("/login");
+          return;
+        }
+
+        const data = await response.json();
+        const verifiedUser = data?.user;
+
+        if (verifiedUser?.role !== "admin") {
+          router.replace("/");
+          return;
+        }
+
+        if (!isActive) return;
+
+        localStorage.setItem("user", JSON.stringify(verifiedUser));
+        setToken(savedToken);
+        setAdmin(verifiedUser);
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.replace("/login");
+      }
+    };
+
+    verifyAdmin();
+
+    return () => {
+      isActive = false;
+    };
   }, [router]);
 
   const loadDashboardData = useCallback(async (currentToken = token) => {
