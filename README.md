@@ -222,6 +222,7 @@ backend/
 # Deployment
 
 Projekti është deployuar në Vercel.
+https://architecture-studio-web-pi.vercel.app/
 
 ---
 
