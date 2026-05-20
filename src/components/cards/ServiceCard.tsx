@@ -34,9 +34,6 @@ export default function ServiceCard({
         {title}
       </h3>
       <p className="relative mt-3 leading-relaxed text-white/72">{description}</p>
-      <div className="relative mt-7 text-sm uppercase tracking-[0.25em] text-white/65 transition-colors duration-300 group-hover:text-white/95">
-        Më shumë →
-      </div>
     </motion.div>
   );
 }
