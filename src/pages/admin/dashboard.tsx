@@ -1,9 +1,11 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import type { GetServerSideProps } from "next";
+import { getServerSession } from "next-auth/next";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Syne } from "next/font/google";
 import { portfolioCategories } from "@/data/portfolioCategories";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 const heading = Syne({
   subsets: ["latin"],
@@ -99,9 +101,21 @@ const formatDate = (value?: string) => {
 };
 
 export const getServerSideProps: GetServerSideProps<AdminDashboardProps> = async ({
+  req,
   res,
 }) => {
   res.setHeader("Cache-Control", "no-store");
+
+  const session = await getServerSession(req, res, authOptions);
+
+  if (session && session.user.role !== "admin") {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
 
   try {
     const response = await fetch(`${API_URL}/portfolio`);
