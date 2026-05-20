@@ -1,11 +1,9 @@
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import type { GetServerSideProps } from "next";
-import { getServerSession } from "next-auth/next";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Syne } from "next/font/google";
 import { portfolioCategories } from "@/data/portfolioCategories";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 const heading = Syne({
   subsets: ["latin"],
@@ -101,21 +99,9 @@ const formatDate = (value?: string) => {
 };
 
 export const getServerSideProps: GetServerSideProps<AdminDashboardProps> = async ({
-  req,
   res,
 }) => {
   res.setHeader("Cache-Control", "no-store");
-
-  const session = await getServerSession(req, res, authOptions);
-
-  if (session && session.user.role !== "admin") {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
 
   try {
     const response = await fetch(`${API_URL}/portfolio`);
@@ -146,6 +132,7 @@ export default function AdminDashboard({
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [loading, setLoading] = useState(true);
+  const [authChecking, setAuthChecking] = useState(true);
   const [notice, setNotice] = useState<AdminNotice | null>(null);
 
   const authHeaders = useMemo(
@@ -159,13 +146,26 @@ export default function AdminDashboard({
   useEffect(() => {
     let isActive = true;
 
+    const redirectToLogin = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      if (isActive) {
+        setAuthChecking(false);
+        setLoading(false);
+      }
+      router.replace("/login");
+    };
+
     const verifyAdmin = async () => {
       const savedToken = localStorage.getItem("token");
 
       if (!savedToken) {
-        router.replace("/login");
+        redirectToLogin();
         return;
       }
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 8000);
 
       try {
         const response = await fetch(`${API_URL}/auth/me`, {
@@ -173,12 +173,11 @@ export default function AdminDashboard({
             Authorization: `Bearer ${savedToken}`,
           },
           cache: "no-store",
+          signal: controller.signal,
         });
 
         if (!response.ok) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          router.replace("/login");
+          redirectToLogin();
           return;
         }
 
@@ -186,6 +185,10 @@ export default function AdminDashboard({
         const verifiedUser = data?.user;
 
         if (verifiedUser?.role !== "admin") {
+          if (isActive) {
+            setAuthChecking(false);
+            setLoading(false);
+          }
           router.replace("/");
           return;
         }
@@ -195,10 +198,11 @@ export default function AdminDashboard({
         localStorage.setItem("user", JSON.stringify(verifiedUser));
         setToken(savedToken);
         setAdmin(verifiedUser);
+        setAuthChecking(false);
       } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        router.replace("/login");
+        redirectToLogin();
+      } finally {
+        window.clearTimeout(timeout);
       }
     };
 
@@ -298,12 +302,16 @@ export default function AdminDashboard({
     await loadDashboardData();
   };
 
-  if (!admin) {
+  if (authChecking) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#1a272f] text-white">
         Loading admin dashboard...
       </div>
     );
+  }
+
+  if (!admin) {
+    return null;
   }
 
   return (

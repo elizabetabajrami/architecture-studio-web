@@ -1,121 +1,277 @@
-# Alkos Group Architecture Studio
+# Architecture Studio Web Platform
 
-## Project Overview
+## Përshkrimi i Projektit
 
-Alkos Group Architecture Studio is a full-stack web application built for an architecture and interior design studio. The platform allows users to explore portfolio projects, view detailed project information, save favorite projects, submit contact/project requests, and manage their profile. Admin users can manage portfolio projects, users, and contact messages through a dedicated dashboard.
+Architecture Studio Web Platform është një aplikacion modern web i zhvilluar për një studio arkitekture dhe interior design. Platforma mundëson prezantimin e kompanisë, shërbimeve dhe projekteve të realizuara, si dhe menaxhimin e përmbajtjes përmes një admin dashboard.
 
-## Technologies Used
+Përdoruesit mund të eksplorojnë portofolion, të shohin detajet e projekteve, të krijojnë llogari, të ruajnë projektet e preferuara dhe të kontaktojnë kompaninë përmes formularëve interaktivë.
+
+---
+
+# Funksionalitetet Kryesore
+
+- Home page moderne dhe responsive
+- Navbar interaktive me smooth scrolling
+- Login & Register me autentifikim
+- Role-based authentication (Admin / User)
+- Admin Dashboard
+- Portfolio dinamike
+- Dynamic Project Details pages
+- Favorites system
+- Contact Form
+- Profile page
+- Responsive Design
+- Glassmorphism UI Design
+- CRUD operacione për projekte
+- MongoDB integration
+- Testing me Jest & React Testing Library
+
+---
+
+# Teknologjitë e Përdorura
 
 - Next.js
-- React
 - TypeScript
 - Tailwind CSS
-- Express.js
 - MongoDB
-- Mongoose
-- JWT Authentication
 - NextAuth
 - React Hook Form
+- Framer Motion
+- Jest
+- React Testing Library
 
-## Main Features
+---
 
-### User Features
+# Data Fetching
 
-- Register and login
-- Profile page with edit profile functionality
-- Save and remove favorite projects
-- Browse portfolio projects by category
-- View project details
-- Submit contact/project request form
+Në projekt janë përdorur teknikat e mëposhtme të Next.js:
 
-### Admin Features
+- `getStaticProps`
+- `getStaticPaths`
+- `getServerSideProps`
+- `ISR (Incremental Static Regeneration)`
+- `revalidate`
 
-- Admin dashboard
-- View users, messages, and projects
-- Add new portfolio projects
-- Edit portfolio projects
-- Delete portfolio projects
-- View and delete contact messages
-- Role-based access control
+---
 
-## Authentication
+# Instalimi i Projektit
 
-The project uses custom JWT authentication for the main application flow, including login, register, profile, favorites, and admin dashboard protection.
+## 1. Clone repository
 
-NextAuth is also included with a Credentials Provider to satisfy the course requirement. It uses the existing MongoDB users collection and supports user/admin role data in the session and JWT token.
-
-The system supports user and admin roles with protected routes and role-based access control.
-
-## Data Fetching
-
-The project includes multiple Next.js data fetching methods:
-
-- SSR with `getServerSideProps`
-- SSG with `getStaticProps`
-- ISR using `revalidate`
-- Dynamic project detail pages with `getStaticPaths`
-
-## Environment Variables
-
-Required environment variables:
-
-```env
-MONGODB_URI=mongodb://localhost:27017/architectureDB
-JWT_SECRET=your-jwt-secret
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-nextauth-secret
-PORT=5000
+```bash
+git clone <repository-link>
 ```
 
-## How to Run Locally
+## 2. Hyr në projekt
 
-MongoDB must be running locally before starting the backend.
+```bash
+cd architecture-studio-web
+```
 
-### Frontend
+## 3. Instalo dependencies
 
 ```bash
 npm install
+```
+
+## 4. Starto projektin
+
+```bash
 npm run dev
 ```
 
-### Backend
+Aplikacioni hapet në:
 
 ```bash
-cd backend
-npm install
-node server.js
+http://localhost:3000
 ```
 
-## Screenshots
+---
+
+# Environment Variables
+
+Krijoni file:
+
+```bash
+.env
+```
+
+Shembull:
+
+```env
+MONGODB_URI=your_mongodb_connection
+NEXTAUTH_SECRET=your_secret
+NEXTAUTH_URL=http://localhost:3000
+JWT_SECRET=your_jwt_secret
+```
+
+---
+
+# Testing
+
+Për testim përdoret Jest dhe React Testing Library.
+
+Run tests:
+
+```bash
+npm test
+```
+
+Projekti përmban:
+
+- 3 component tests
+- 2 API route tests
+
+---
+
+# Build Production
+
+```bash
+npm run build
+```
+
+---
+
+# Struktura e Projektit
+
+```bash
+src/
+ ├── components/
+ ├── pages/
+ ├── sections/
+ ├── context/
+ ├── hooks/
+ ├── styles/
+ ├── lib/
+ └── data/
+
+backend/
+ ├── models/
+ ├── routes/
+ ├── middleware/
+ └── config/
+```
+
+---
+
+# Faqet Kryesore
+
+- Home
+- About
+- Contact
+- Login
+- Register
+- Profile
+- Portfolio
+- Project Details
+- Admin Dashboard
+
+---
+
+# Rrjedha e Autentifikimit
+
+- User login/register
+- JWT authentication
+- Role checking
+- Admin route protection
+- Favorites management
+- Protected dashboard access
+
+---
+
+# Team Members
+
+- Elizabeta Bajrami
+- Laura
+- Vlera
+- Blenda
+
+---
+
+# Ndarja e Punës
+
+### Elizabeta Bajrami
+
+- Frontend UI/UX
+- Home page
+- Navbar interactions
+- Glassmorphism design
+- Responsive layout
+- Animations
+
+### Laura
+
+- Authentication
+- Login/Register
+- NextAuth integration
+
+### Vlera
+
+- Portfolio system
+- Dynamic project pages
+- Favorites functionality
+
+### Blenda
+
+- Contact forms
+- Admin dashboard
+- Request management
+
+---
+
+# Deployment
+
+Projekti është deployuar në Vercel.
+
+---
+
+# Screenshots
+
+## Home Page
 
 ![Home Page](./screenshots/home.png)
 
-![Portfolio Page](./screenshots/portfolio.png)
+## About Us
 
-![Project Details Page](./screenshots/project-details.png)
+![About Us](./screenshots/aboutus.png)
 
-![Profile Page](./screenshots/profile.png)
+## Services
 
-![Admin Dashboard](./screenshots/admin-dashboard.png)
+![Services](./screenshots/services.png)
 
-![Contact Messages](./screenshots/contact-messages.png)
+## Portfolio
 
-## Deployment
+![Portfolio](./screenshots/portfolio.png)
 
-Live Demo: coming soon
+## Project Details
 
-Deployment is planned on Vercel.
+![Project Details](./screenshots/details.png)
 
-## Team Members and Roles
+## Contact Page
 
-- Elizabeta Bajrami – Frontend Development, UI Design, Portfolio Pages
-- Laura Geci – Authentication, Profile, User Features
-- Vlere Shabiu – Database, Backend, Project Management Features
-- Blenda Abdullahu – Admin Panel, Contact Messages, Forms
+![Contact Page](./screenshots/contactus.png)
 
-## Notes
+## Login Page
 
-- The application includes both frontend and backend.
-- MongoDB is used as the database.
-- The backend runs locally on port 5000.
-- The frontend runs locally on port 3000.
+![Login Page](./screenshots/login.png)
+
+## Admin Dashboard
+
+![Admin Dashboard](./screenshots/adminview.png)
+
+---
+
+# Përmirësime të Ardhshme
+
+- Google Authentication
+- Dark/Light mode
+- Advanced filtering
+- Real-time notifications
+- Project search system
+- Image optimization improvements
+
+---
+
+# Përfundim
+
+Ky projekt demonstron zhvillimin e një aplikacioni modern web me Next.js dhe Tailwind CSS, duke implementuar autentifikim, role management, dynamic routing, data fetching methods, CRUD operacione, responsive design dhe praktika moderne të frontend development.
